@@ -37,6 +37,8 @@ function getStream(filename) {
       return [perfDataStream(longname), longname];
     case '.log':
       return [preprocessLog(longname).pipe(preprocessedToStacks()), longname];
+    case '.bto':
+      return [bpfDataStream(longname), longname];
     default:
       throw new Error('unrecognized file format');
   }
@@ -84,6 +86,11 @@ function perfDataStream(filename) {
     spawn('sudo', ['perf', 'script', '-i', filename]) :
     spawn('perf', ['script', '-i', filename]);
   perfScriptProc.stdout.pipe(stackcollapseProc.stdin);
+  return stackcollapseProc.stdout;
+}
+
+function bpfDataStream(filename) {
+  const stackcollapseProc = flamegraph('stackcollapse-bpftrace', [filename]);
   return stackcollapseProc.stdout;
 }
 
